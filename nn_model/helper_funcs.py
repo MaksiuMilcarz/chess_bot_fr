@@ -29,16 +29,24 @@ def create_input_for_nn(games):
     y_list = []
     for game in games:
         board = game.board()
+        total_moves = len(list(game.mainline_moves()))
+        move_number = 0
         for move in game.mainline_moves():
-            X_list.append(board_to_matrix(board))
-            y_list.append(move.uci())
+            move_number += 1
+            # Define probability of including this position
+            alpha = 1.5  # Adjust alpha to control the weighting
+            p_include = (move_number / total_moves) ** alpha
+            # Randomly decide whether to include this position
+            if np.random.rand() < p_include:
+                X_list.append(board_to_matrix(board))
+                y_list.append(move.uci())
             board.push(move)
     X_array = np.array(X_list, dtype=np.float32)
     y_array = np.array(y_list)
     return X_array, y_array
 
 # Collect unique moves
-def collect_unique_moves(files, max_games=50000):
+def collect_unique_moves(files, max_games):
     total_games_processed = 0
     all_moves = set()
     for file in tqdm.tqdm(files, desc='Collecting Moves'):
@@ -59,7 +67,7 @@ def collect_unique_moves(files, max_games=50000):
     return move_to_int, num_classes
 
 # Process data and save chunks
-def process_data_and_save_chunks(files, move_to_int, chunk_size=5000, max_games=50000):
+def process_data_and_save_chunks(files, move_to_int, chunk_size, max_games):
     total_games_processed = 0
     chunk_index = 0
     data_chunk_files = []
