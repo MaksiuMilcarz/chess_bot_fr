@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 from chess import Board
 import chess.pgn as pgn
@@ -95,6 +96,7 @@ def process_data_and_save_chunks(files, move_to_int, chunk_size, max_games):
                 chunk_index += 1
                 if total_games_processed >= max_games:
                     break
+                gc.collect()
         if total_games_processed >= max_games:
             break
     return data_chunk_files
