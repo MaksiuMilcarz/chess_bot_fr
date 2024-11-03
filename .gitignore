@@ -1,4 +1,5 @@
-.venv
+*.venv
+*.npz
 data/pgn/*.pgn
 data_/pgn/*.pgn
 __pycache__/
