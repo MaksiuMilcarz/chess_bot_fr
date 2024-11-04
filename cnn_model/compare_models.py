@@ -1,6 +1,12 @@
 import chess
 from predict import predict_best_move
 import chess
+import chess
+import chess.svg
+import time
+from IPython.display import clear_output, display, SVG
+import numpy as np
+import copy
 
 def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B, int_to_move_B, num_games=1000, temperature_A=1.0, temperature_B=1.0):
     """
@@ -92,3 +98,62 @@ def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B
     print(f"Draws: {results['draws']}")
 
     return results
+
+def simulate_game(model_1, model_2, move_to_int, int_to_move, initial_board=None, sleep_time=0.5, board_size=500, temperature=1.0):
+    # Use the provided board or start from the default position
+    board = copy.deepcopy(initial_board) if initial_board else chess.Board()
+
+    # Ensure models are in evaluation mode
+    model_1.eval()
+    model_2.eval()
+
+    # Start the game loop
+    while True:
+        # Clear the previous board output
+        clear_output(wait=True)
+
+        # Render and display the board as an SVG
+        board_svg = chess.svg.board(board=board, size=board_size)
+        display(SVG(data=board_svg))
+
+        # Determine which model to use based on the side to move
+        if board.turn == chess.WHITE:
+            best_move = predict_best_move(model_1, move_to_int, int_to_move, board, temperature)
+        else:
+            best_move = predict_best_move(model_2, move_to_int, int_to_move, board, temperature)
+
+        if best_move is None:
+            # No valid move predicted, check for the result and display it
+            result = board.result()
+            print(f"Game over! Result: {result}")
+            if result == "1-0":
+                print("White wins!")
+            elif result == "0-1":
+                print("Black wins!")
+            elif result == "1/2-1/2":
+                print("Draw!")
+            break  # Exit the game loop
+
+        # Apply the predicted move
+        move = board.parse_uci(best_move)
+        board.push(move)
+
+        # Wait for the specified time before updating again
+        time.sleep(sleep_time)
+
+        # Check if the game is over after applying the move
+        if board.is_game_over():
+            # Display the final result
+            clear_output(wait=True)
+            board_svg = chess.svg.board(board=board, size=board_size)
+            display(SVG(data=board_svg))
+
+            result = board.result()
+            print(f"Game over! Result: {result}")
+            if result == "1-0":
+                print("Model 1 - White wins!")
+            elif result == "0-1":
+                print("Model 2 - Black wins!")
+            elif result == "1/2-1/2":
+                print("Draw!")
+            break
