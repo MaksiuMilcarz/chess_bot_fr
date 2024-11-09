@@ -1,27 +1,70 @@
 import gc
+import chess
 import numpy as np
 from chess import Board
 import chess.pgn as pgn
 import tqdm
 
 # Function to convert board to matrix
-def board_to_matrix(board: Board):
-    matrix = np.zeros((14, 8, 8), dtype=np.float32)
-    piece_map = board.piece_map()
-    # Populate first 12 8x8 boards (where pieces are)
-    for square, piece in piece_map.items():
+def board_to_matrix(board: chess.Board):
+    # Initialize the matrix with 16 planes
+    # Planes 0-5: White pieces (P, N, B, R, Q, K)
+    # Planes 6-11: Black pieces (P, N, B, R, Q, K)
+    # Plane 12: Side to move
+    # Plane 13: Castling rights (KQkq)
+    # Plane 14: Squares attacked by White
+    # Plane 15: Squares attacked by Black
+    matrix = np.zeros((16, 8, 8), dtype=np.float32)
+    
+    # Map pieces to planes
+    piece_type_to_plane = {
+        (chess.PAWN, chess.WHITE): 0,
+        (chess.KNIGHT, chess.WHITE): 1,
+        (chess.BISHOP, chess.WHITE): 2,
+        (chess.ROOK, chess.WHITE): 3,
+        (chess.QUEEN, chess.WHITE): 4,
+        (chess.KING, chess.WHITE): 5,
+        (chess.PAWN, chess.BLACK): 6,
+        (chess.KNIGHT, chess.BLACK): 7,
+        (chess.BISHOP, chess.BLACK): 8,
+        (chess.ROOK, chess.BLACK): 9,
+        (chess.QUEEN, chess.BLACK): 10,
+        (chess.KING, chess.BLACK): 11,
+    }
+    
+    # Populate piece planes
+    for square, piece in board.piece_map().items():
+        plane = piece_type_to_plane[(piece.piece_type, piece.color)]
         row, col = divmod(square, 8)
-        piece_type = piece.piece_type - 1
-        piece_color = 0 if piece.color else 6
-        matrix[piece_type + piece_color, row, col] = 1
-    # Populate the legal moves board (13th 8x8 board)
-    legal_moves = board.legal_moves
-    for move in legal_moves:
-        to_square = move.to_square
-        row_to, col_to = divmod(to_square, 8)
-        matrix[12, row_to, col_to] = 1
+        matrix[plane, row, col] = 1.0
+    
     # Side to move plane
-    matrix[13, :, :] = 1.0 if board.turn else 0.0
+    matrix[12, :, :] = 1.0 if board.turn == chess.WHITE else 0.0
+    
+    # Castling rights encoded in specific positions
+    matrix[13, 0, 0] = 1.0 if board.has_kingside_castling_rights(chess.WHITE) else 0.0
+    matrix[13, 0, 7] = 1.0 if board.has_queenside_castling_rights(chess.WHITE) else 0.0
+    matrix[13, 7, 0] = 1.0 if board.has_kingside_castling_rights(chess.BLACK) else 0.0
+    matrix[13, 7, 7] = 1.0 if board.has_queenside_castling_rights(chess.BLACK) else 0.0
+    
+    # Efficient attack map calculations
+    white_attacks_bb = 0
+    black_attacks_bb = 0
+
+    # Using chess.SquareSet and efficient bitboard calculations
+    for color, attack_plane in [(chess.WHITE, 14), (chess.BLACK, 15)]:
+        for piece_type in chess.PIECE_TYPES:
+            squares = board.pieces(piece_type, color)
+            attack_bb = sum(board.attacks_mask(square) for square in squares)
+            if color == chess.WHITE:
+                white_attacks_bb |= attack_bb
+            else:
+                black_attacks_bb |= attack_bb
+        attack_squares = np.array(chess.SquareSet(white_attacks_bb if color == chess.WHITE else black_attacks_bb).squares)
+        if len(attack_squares) > 0:
+            rows, cols = np.divmod(attack_squares, 8)
+            matrix[attack_plane, rows, cols] = 1.0
+
     return matrix
 
 # Function to create input for NN
