@@ -8,7 +8,7 @@ from IPython.display import clear_output, display, SVG
 import numpy as np
 import copy
 
-def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B, int_to_move_B, num_games=1000, temperature_A=1.0, temperature_B=1.0):
+def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B, int_to_move_B, num_games=1000):
     """
     Simulates multiple games between two models and collects the results per model.
 
@@ -36,8 +36,6 @@ def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B
         if game_num % 2 == 0:
             white_model = model_A
             black_model = model_B
-            temp_white = temperature_A
-            temp_black = temperature_B
             move_to_int_white = move_to_int_A
             int_to_move_white = int_to_move_A
             move_to_int_black = move_to_int_B
@@ -45,8 +43,6 @@ def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B
         else:
             white_model = model_B
             black_model = model_A
-            temp_white = temperature_B
-            temp_black = temperature_A
             move_to_int_white = move_to_int_B
             int_to_move_white = int_to_move_B
             move_to_int_black = move_to_int_A
@@ -56,9 +52,9 @@ def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B
         while not board.is_game_over():
             # Determine which model to use based on the side to move
             if board.turn == chess.WHITE:
-                best_move = predict_best_move(white_model, move_to_int_white, int_to_move_white, board, temp_white)
+                best_move = predict_best_move(white_model, move_to_int_white, int_to_move_white, board)
             else:
-                best_move = predict_best_move(black_model, move_to_int_black, int_to_move_black, board, temp_black)
+                best_move = predict_best_move(black_model, move_to_int_black, int_to_move_black, board)
 
             if best_move is None:
                 # No valid move predicted; the current player loses
@@ -99,7 +95,7 @@ def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B
 
     return results
 
-def simulate_game(model_1, model_2, move_to_int, int_to_move, initial_board=None, sleep_time=0.5, board_size=500, temperature=1.0):
+def simulate_game(model_1, model_2, move_to_int, int_to_move, initial_board=None, sleep_time=0.5, board_size=500):
     # Use the provided board or start from the default position
     board = copy.deepcopy(initial_board) if initial_board else chess.Board()
 
@@ -118,9 +114,9 @@ def simulate_game(model_1, model_2, move_to_int, int_to_move, initial_board=None
 
         # Determine which model to use based on the side to move
         if board.turn == chess.WHITE:
-            best_move = predict_best_move(model_1, move_to_int, int_to_move, board, temperature)
+            best_move = predict_best_move(model_1, move_to_int, int_to_move, board)
         else:
-            best_move = predict_best_move(model_2, move_to_int, int_to_move, board, temperature)
+            best_move = predict_best_move(model_2, move_to_int, int_to_move, board)
 
         if best_move is None:
             # No valid move predicted, check for the result and display it
