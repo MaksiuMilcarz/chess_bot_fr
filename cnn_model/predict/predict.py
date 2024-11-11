@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from helper_funcs import board_to_matrix
 import torch.nn.functional as F
 from chess import Board
 import chess
@@ -11,6 +10,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import copy
+
+from train.utils import board_to_matrix_mark34
+
+
 
 def predict_best_move(model, move_to_int, int_to_move, board):
     """
@@ -26,7 +29,7 @@ def predict_best_move(model, move_to_int, int_to_move, board):
     - best_move: Move sampled from the probability distribution over legal moves, in UCI format (string).
     """
     # Convert the board to the input matrix
-    input_matrix = board_to_matrix(board)
+    input_matrix = board_to_matrix_mark34(board)
 
     # Convert to PyTorch tensor and add batch dimension
     input_tensor = torch.from_numpy(input_matrix).unsqueeze(0).to(next(model.parameters()).device)

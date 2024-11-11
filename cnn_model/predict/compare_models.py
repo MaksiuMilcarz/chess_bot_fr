@@ -1,5 +1,4 @@
 import chess
-from predict import predict_best_move
 import chess
 import chess
 import chess.svg
@@ -7,6 +6,9 @@ import time
 from IPython.display import clear_output, display, SVG
 import numpy as np
 import copy
+
+# import ../train/utils.py
+from predict import predict_best_move
 
 def compare_models(model_A, model_B, move_to_int_A, int_to_move_A, move_to_int_B, int_to_move_B, num_games=1000):
     """

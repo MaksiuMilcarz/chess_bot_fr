@@ -2,4 +2,14 @@
 *.npz
 data/pgn/*.pgn
 data_/pgn/*.pgn
+data_all/pgn/*.pgn
+data_all_
+data_all
+data_all_/pgn/*.pgn
+*data_all
+data_all_/
+data_all_/*
+data_all/*
+*.h5
 __pycache__/
+.vscode
