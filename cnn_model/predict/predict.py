@@ -13,9 +13,7 @@ import copy
 
 from train.utils import board_to_matrix_mark34
 
-
-
-def predict_best_move(model, move_to_int, int_to_move, board):
+def predict_best_move_mark34(model, move_to_int, int_to_move, board):
     """
     Predicts a move for the given board state by sampling from the probability distribution over legal moves.
 
@@ -49,12 +47,16 @@ def predict_best_move(model, move_to_int, int_to_move, board):
     logits = outputs.squeeze(0)  # Shape: (num_classes,)
     legal_logits = logits[legal_indices]
 
-    # Apply softmax to get a valid probability distribution
-    legal_probs = torch.softmax(legal_logits, dim=0)
+    # # Apply softmax to get a valid probability distribution
+    # legal_probs = torch.softmax(legal_logits, dim=0)
+    # # Sample a move based on the probabilities
+    # chosen_idx = torch.multinomial(legal_probs, num_samples=1).item()
+    # chosen_move_index = legal_indices[chosen_idx]
+    
+    #deterministic bets move
+    best_idx = torch.argmax(legal_logits).item()
+    chosen_move_index = legal_indices[best_idx]
 
-    # Sample a move based on the probabilities
-    chosen_idx = torch.multinomial(legal_probs, num_samples=1).item()
-    chosen_move_index = legal_indices[chosen_idx]
     best_move = int_to_move[chosen_move_index]
 
     return best_move

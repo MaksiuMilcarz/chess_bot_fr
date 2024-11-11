@@ -7,7 +7,7 @@ import chess.svg
 from IPython.display import clear_output, display, SVG
 from train.model import ChessModel_mark34
 from train.utils import board_to_matrix_mark34
-from predict.predict import predict_best_move
+from predict.predict import predict_best_move_mark34
 
 
 def display_board(board):
@@ -61,7 +61,7 @@ def main():
             break
 
         # Bot's turn
-        bot_move_uci = predict_best_move(model, move_to_int, int_to_move, board)
+        bot_move_uci = predict_best_move_mark34(model, move_to_int, int_to_move, board)
         if bot_move_uci is None:
             print('Bot resigns. You win!')
             break
