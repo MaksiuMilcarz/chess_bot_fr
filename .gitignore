@@ -4,6 +4,8 @@ data/pgn/*.pgn
 data_/pgn/*.pgn
 data_all/pgn/*.pgn
 data_all/
+data/
+chunks/
 *.h5
 __pycache__/
 .vscode

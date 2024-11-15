@@ -1,0 +1,6 @@
+pip freeze > requirements.txt
+maturin develop 
+maturin develop --release (optimized)
+
+source venv/bin/activate
+conda deactivate 
