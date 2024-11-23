@@ -1,14 +1,19 @@
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
+mod mcts;
+mod neural_net;
+mod game;
+mod data;
+
 #[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+fn self_play(num_games: usize, model_path: &str, output_path: &str) -> PyResult<()> {
+    mcts::self_play(num_games, model_path, output_path).map_err(|e| {
+        pyo3::exceptions::PyRuntimeError::new_err(format!("Error in self_play: {:?}", e))
+    })
 }
 
-/// A Python module implemented in Rust.
 #[pymodule]
-fn rust_magic(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+fn my_chess_bot(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(self_play, m)?)?;
     Ok(())
 }

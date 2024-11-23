@@ -10,25 +10,24 @@ from utils import board_to_matrix
 class HDF5Dataset(Dataset):
     def __init__(self, hdf5_file_path):
         self.hdf5_file_path = hdf5_file_path
-        self.hdf5_file = h5py.File(self.hdf5_file_path, 'r')
-        self.X = self.hdf5_file['X']
-        self.y = self.hdf5_file['y']
 
     def __len__(self):
-        return self.X.shape[0]
+        with h5py.File(self.hdf5_file_path, 'r') as h5_file:
+            return h5_file['X'].shape[0]
 
     def __getitem__(self, idx):
-        X = self.X[idx]
-        y = self.y[idx]
-        
-            # Data Augmentation: Randomly flip the board
+        with h5py.File(self.hdf5_file_path, 'r') as h5_file:
+            X = h5_file['X'][idx]
+            y = h5_file['y'][idx]
+
+        # Data Augmentation: Randomly flip the board
         if random.random() < 0.5:
             X = np.flip(X, axis=2)  # Flip horizontally
         if random.random() < 0.5:
             X = np.flip(X, axis=1)  # Flip vertically
 
         # Convert to torch tensors
-        X = torch.from_numpy(X)
+        X = torch.from_numpy(X).float()
         y = torch.tensor(y, dtype=torch.long)
 
         return X, y
